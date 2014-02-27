@@ -6,6 +6,8 @@ from subprocess import call, check_output
 import os
 from watchdog.events import FileSystemEventHandler
 import platform
+
+
 update_dir = None
 
 
@@ -14,15 +16,22 @@ class MyEventHandler(FileSystemEventHandler):
         self.observer = observer
 
     def on_any_event(self, event):
-        if ".git" not in event.src_path:
-            ret_dir = os.getcwd()
-            os.chdir(update_dir)
-            composer_loc = check_output(["which","composer"])
-            if "composer" in composer_loc:
-                call(["composer", "update"])
+        if ".git" not in event.src_path and not event.is_directory and not os.path.basename(os.path.abspath(event.src_path)).startswith('.'):
+            module = update_dir.split("/")[-1]
+            src_parts = event.src_path.split("/")
+            i = 1
+            for part in src_parts:
+                if part == module:
+                    break
+                else:
+                    i = i+1
+            destination = update_dir + "/" + "/".join(src_parts[i:])
+            if event.event_type is "deleted":
+                print "removing %s" % (destination)
+                call(["rm",destination])
             else:
-                call(["/usr/bin/php", "./composer.phar", "update"])
-            os.chdir(ret_dir)
+                print "copying %s to %s" % (event.src_path, destination)
+                call(["cp",event.src_path,destination])
 
 if __name__ == "__main__":
     watch_dir = sys.argv[1]
