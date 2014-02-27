@@ -2,10 +2,9 @@ import sys
 import time
 import logging
 from watchdog.observers import Observer
-from subprocess import call, check_output
+from subprocess import call
 import os
 from watchdog.events import FileSystemEventHandler
-import platform
 
 
 update_dir = None
@@ -24,14 +23,14 @@ class MyEventHandler(FileSystemEventHandler):
                 if part == module:
                     break
                 else:
-                    i = i+1
+                    i = i + 1
             destination = update_dir + "/" + "/".join(src_parts[i:])
             if event.event_type is "deleted":
                 print "removing %s" % (destination)
-                call(["rm",destination])
+                call(["rm", destination])
             else:
                 print "copying %s to %s" % (event.src_path, destination)
-                call(["cp",event.src_path,destination])
+                call(["cp", event.src_path, destination])
 
 if __name__ == "__main__":
     watch_dir = sys.argv[1]
